@@ -19,7 +19,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
             <a class="navbar-brand js-scroll-trigger" href="#page-top">
-                <span class="d-block d-lg-none">Clarence Taylor</span>
+                <span class="d-block d-lg-none">Yueming Liu</span>
                 <span class="d-none d-lg-block"><img class="img-fluid img-profile rounded-circle mx-auto mb-2" src="assets/img/profile.jpg" alt="..." /></span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -49,33 +49,356 @@
                         
                     </div>
                     <p class="lead mb-5">I am an MEng Student in Mechanical Engineering at Cornell University, 
-                        check out my personal website <a href="https://yueming-liu.web.app/">here</a>! </p>
-                    <div class="social-icons">
-                        <a class="social-icon" href="#!"><i class="fab fa-linkedin-in"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-github"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-twitter"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-facebook-f"></i></a>
-                    </div>
+                        please check out my main website <a href="https://yueming-liu.web.app/">here</a>! </p>
+                
                 </div>
             </section>
             <hr class="m-0" />
             <!-- Lab 1-->
             <section class="resume-section" id="Lab 1">
                 <div class="resume-section-content">
-                    <h1 class="mb-0">
-                        Clarence
-                        <span class="text-primary">Taylor</span>
-                    </h1>
-                    <div class="subheading mb-5">
-                        3542 Berry Street · Cheyenne Wells, CO 80810 · (317) 585-8468 ·
-                        <a href="mailto:name@email.com">name@email.com</a>
-                    </div>
-                    <p class="lead mb-5">I am Lab 2d in leveraging agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</p>
-                    <div class="social-icons">
-                        <a class="social-icon" href="#!"><i class="fab fa-linkedin-in"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-github"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-twitter"></i></a>
-                        <a class="social-icon" href="#!"><i class="fab fa-facebook-f"></i></a>
+                    <h2 class="mb-0">Lab 1 <span class="text-primary">The Artemis board and Bluetooth</span> </h2>
+                    <p class="mb-5">The goal of this lab is to set up the Arduino IDE for the Artemis board, and connect the board to the laptop with Bluetooth and Jupyter Lab notebook.</p>
+                        
+                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
+                        <div class="flex-grow-1">
+                            <h3 class="mb-3">Part A</h3>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Prelab</div>
+                                <p>For the prelab, I updated my Arduino IDE to the lastest version and installed the Sparkfun Appollo3 boards manager in the IDE. </p>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 1: Blink</div>
+                                <p>To test the basic connectivity of the board, I ran the example script File->Examples->01.Basics </p>
+                                <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/op_ChMm5QYk">
+                                </iframe>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 2: Serial Output</div>
+                                <p>To test the serial monitor functionality, I set the baud rate of the board and the serial monitor to 115200 and ran the example script File->Examples->Apollo3->Example4_Serial. I was able to see the output when I reset the board. </p>
+                                <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/7u9DyQK-hrk">
+                                </iframe>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 3: Analog Read</div>
+                                <p>To test temperature sensor on the boad and the analog read functionality, I ran the example script File->Examples->Apollo3->Example2_analogRead. I was able to change the temperature output (the second colomn) by touching the sensor with my fingers. </p>
+                                <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/4Vi-IR_s2ds">
+                                </iframe>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 4: Microphone Output</div>
+                                <p>To test microphone on the boad, I ran the example script File->Examples->PDM->Example1_MicrophoneOutput. I played an audio clip with an increasing pitch and the board correctly outputted the increasing frequencies. </p>
+                                <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/elPu62MjLh0">
+                                </iframe>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 5: Blink at C Note</div>
+                                <p>I programmed the board to blink the LED when I play a musical "C" note, and off otherwise. </p>
+                                <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/T_X3ld3etUc">
+                                </iframe>
+                            </div>
+
+
+
+
+                            <h3 class="mb-3">Part B</h3>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Prelab</div>
+                                <p>For the prelab, I first installed venv. </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">python3 -m pip install --user virtualenv</code></div></div>
+                                <p>I created a Python virtual environement under my project directory and activated it. </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2</div>
+                                <div class="code-content"><code class="mb-0">python3 -m venv FastRobots_ble<br>source FastRobots_ble/bin/activate</code></div></div>
+                                <p>I then installed all the necessary packages. </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">pip install numpy pyyaml colorama nest_asyncio bleak jupyterlab</code></div></div>
+                                <p>After that I was able to start the Jupyter server in my project directory. </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">Jupyter lab</code></div></div>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Configurations</div>
+                                <p>In connections.yaml, I replaced the artemis_address value with the MAC address printed by my Artemis in the prelab. </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">artemis_address: 'c0:81:85:26:a3:64'</code></div></div>
+                                <p>I then generated a new UUID for my Artemis board, </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2</div>
+                                <div class="code-content"><code class="mb-0">from uuid import uuid4<br>uuid4()</code></div></div>
+                                <p>and used this UUID for my BLE_UUID_TEST_SERVICE in ble_arduino.ino and for my ble_service in connections.yaml. </p>
+                                
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 1: ECHO</div>
+                                <p>For the ECHO command, the Artemis board receives a string message from the computer, augments the string, and sends it back to the computer. </p>
+                                <p>On the Artemis board side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15</div>
+                                <div class="code-content"><code class="mb-0">case ECHO:
+    char char_arr[MAX_MSG_SIZE];
+
+    // Extract the next value from the command string as a character array
+    success = robot_cmd.get_next_value(char_arr);
+    if (!success)
+        return;
+
+    tx_estring_value.clear();
+    tx_estring_value.append("Robot says -> ");
+    tx_estring_value.append(char_arr);
+    tx_estring_value.append(" :)");
+    tx_characteristic_string.writeValue(tx_estring_value.c_str());
+
+    break;</code></div></div>
+                                <p>On the Computer side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3</div>
+                                <div class="code-content"><code class="mb-0">ble.send_command(CMD.ECHO, "hey")<br>s = ble.receive_string(ble.uuid['RX_STRING'])<br>print(s)</code></div></div>
+                                <p>Output from the Jupyter notebook: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">Robot says -> hey :)</code></div></div>
+                                
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 2: SEND_THREE_FLOATS</div>
+                                <p>The SEND_THREE_FLOATS command sends three floats to the Artemis board, and the board extracts and prints the three float values. </p>
+                                <p>On the Artemis board side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25</div>
+                                <div class="code-content"><code class="mb-0">case SEND_THREE_FLOATS:
+    float float1, float2, float3;
+
+    // Extract the next value from the command string as an integer
+    success = robot_cmd.get_next_value(float1);
+    if (!success)
+        return;
+
+    // Extract the next value from the command string as an integer
+    success = robot_cmd.get_next_value(float2);
+    if (!success)
+        return;
+
+    success = robot_cmd.get_next_value(float3);
+    if (!success)
+        return;
+
+    Serial.print("Three floats: ");
+    Serial.print(float1);
+    Serial.print(", ");
+    Serial.print(float2);
+    Serial.print(", ");
+    Serial.println(float3);
+
+    break;</code></div></div>
+                                <p>On the Computer side: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">ble.send_command(CMD.SEND_THREE_FLOATS, "1.0| 2.0| 3.0")</code></div></div>
+                                <p>Output from the Serial Monitor: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">Three floats: 1.00, 2.00, 3.00</code></div></div>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 3: GET_TIME_MILLIS</div>
+                                <p>The GET_TIME_MILLIS command makes the robot reply with a string with the value of current time in milliseconds.</p>
+                                <p>On the Artemis board side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</div>
+                                <div class="code-content"><code class="mb-0">case GET_TIME_MILLIS:{
+    unsigned long timeMillis = millis();
+    char buffer[20];
+    itoa(timeMillis, buffer, 10);
+    tx_estring_value.clear();
+    tx_estring_value.append(buffer);
+    tx_characteristic_string.writeValue(tx_estring_value.c_str());
+}break;</code></div></div>
+                                <p>On the Computer side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3</div>
+                                <div class="code-content"><code class="mb-0">ble.send_command(CMD.GET_TIME_MILLIS, "")
+s = ble.receive_string(ble.uuid['RX_STRING'])
+print(s)</code></div></div>
+                                <p>Output from the Jupyter notebook: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">43749</code></div></div>
+                            
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 4: Notification Handling</div>
+                                <p>When we are unsure about when we receive data from the Artemis board, it is important to set up a notification handler instead of directly calling ble.receive_string(ble.uuid['RX_STRING']). </p>
+                                <p>Nothing to be done on the Artemis board side. On the Computer side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5</div>
+                                <div class="code-content"><code class="mb-0">def notification_handler(uuid, notification):
+    s = ble.bytearray_to_string(notification)
+    print("Time: " + s)
+ble.start_notify(ble.uuid['RX_STRING'], notification_handler)
+ble.send_command(CMD.GET_TIME_MILLIS, "")</code></div></div>
+                                <p>Output from the Jupyter notebook: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">Time: 43959</code></div></div>
+                            </div>
+
+
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 5: GET_TIME_LOOP</div>
+                                <p>Similar to GET_TIME_MILLIS command, GET_TIME_LOOP gets the current time in milliseconds and sends it to the laptop to be received and processed by the notification handler.</p>
+                                <p>On the Artemis board side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13</div>
+                                <div class="code-content"><code class="mb-0">case GET_TIME_LOOP:{
+    int num_notify = 30;
+    for (int i = 0; i < num_notify; i++) {
+        unsigned long timeMillis = millis();
+        char buffer[20];
+        itoa(timeMillis, buffer, 10);
+        tx_estring_value.clear();
+        tx_estring_value.append(buffer);
+        tx_characteristic_string.writeValue(tx_estring_value.c_str());
+        Serial.println("Sent current time.");
+    }  
+}break;</code></div></div>
+                                <p>On the Computer side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8</div>
+                                <div class="code-content"><code class="mb-0">time = []
+def notification_handler_loop(uuid, notification):
+    s = ble.bytearray_to_string(notification)
+    time.append(s)
+
+ble.start_notify(ble.uuid['RX_STRING'], notification_handler_loop)
+ble.send_command(CMD.GET_TIME_LOOP, "")
+print(time)</code></div></div>
+                                <p>Output from the Jupyter notebook: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">['165447', '165449', '165450', '165452', '165481']</code></div></div>
+                                <p>The board sent 5 messages (4 bytes each) in 165481ms - 165447ms = 34ms, so the effective data transfer rate is 5*4/34*1000 = 588 bytes per second. </p>
+                            </div>
+
+
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 6: SEND_TIME_DATA</div>
+                                <p>The SEND_TIME_DATA command is similar to GET_TIME_LOOP, but stores the times in an array before start sending them. </p>
+                                <p>On the Artemis board side, first define numTimeStamps and the array timeStamps, and then: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16</div>
+                                <div class="code-content"><code class="mb-0">case SEND_TIME_DATA:{
+int c = 0;
+    while(true){
+    timeStamps[c] = (int) millis();
+    c++;
+        if(c > numTimeStamps-1){
+            break;
+        }
+    }
+
+    for (int i = 0; i < numTimeStamps; i++) {
+        tx_estring_value.clear();
+        tx_estring_value.append(timeStamps[i]);
+        tx_characteristic_string.writeValue(tx_estring_value.c_str());
+    }  
+}break;</code></div></div>
+                                <p>On the Computer side, similar to last step but change the command to: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">ble.send_command(CMD.SEND_TIME_DATA, "")</code></div></div>
+                                <p>Output from the Jupyter notebook was an array of size numTimeStamps. </p>
+                            </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 7: GET_TEMP_READINGS</div>
+                                <p>In addition to getting the time stamp, read temperature at each time stamp. </p>
+                                <p>On the Artemis board side: </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19</div>
+                                <div class="code-content"><code class="mb-0">case GET_TEMP_READINGS:{
+int c = 0;
+    while(true){
+    timeStamps[c] = (int) millis();
+    tempReadings[c] = getTempDegF();
+    c++;
+        if(c > numTimeStamps-1){
+            break;
+        }
+    }
+    for (int i = 0; i < numTimeStamps; i++) {
+        tx_estring_value.clear();
+        tx_estring_value.append("Time: ");
+        tx_estring_value.append(timeStamps[i]);
+        tx_estring_value.append(", Temp (F): ");
+        tx_estring_value.append(tempReadings[i]);
+        tx_characteristic_string.writeValue(tx_estring_value.c_str());
+    }  
+}break;</code></div></div>
+                                <p>On the Computer side, similar to last step but change the command to: </p>
+                                <div class="code-container"><div class="line-numbers">1</div>
+                                <div class="code-content"><code class="mb-0">ble.send_command(CMD.GET_TEMP_READINGS, "")</code></div></div>
+                                <p>Output from the Jupyter notebook was an array of size numTimeStamps with the time stamps and the corresponding temperature readings. </p>
+                            </div>
+
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 8: Methods Comparison</div>
+                                <p>The first method sends the data live, which makes debuggin quick and easy with the data streaming. 
+                                    We are not worried about running out of space on the Artemis board as the data is not being stored there. 
+                                    The rate in which it records and sends data, however, is limited because it needs alternate between these two tasks. 
+                                    Some data might also get lost in this process. </p>
+
+                                <p>The second method stores all the data on the board and transmits it at some later time. 
+                                    It is significantly faster than the first one since it does not need to transmit data while also recording it. 
+                                    However, we need to be considerate about the storage space on board. The Artemis board has 384 kB of RAM. 
+                                    If each datapoint is 4 bytes, then it runs out of space after 96000 datapoints. </p>
+                            </div>
+
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 9: Effective Data Rate and Overhead </div>
+                                <p>We are insterested in the data rate with respect to the size of the packets. 
+                                    In order to find this relation, we can command the board to send a series of packets of different sizes to the computer, 
+                                    and record the difference between the send time and receive time of each packete. Here the ECHO command returns exactly the message sent:   </p>
+                                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16</div>
+                                <div class="code-content"><code class="mb-0">packet = []
+time_send = []
+time_receive = []
+data_size = []
+def notification_handler_packet(uuid, notification):
+    packet.append(ble.bytearray_to_string(notification))
+
+ble.start_notify(ble.uuid['RX_STRING'], notification_handler_packet)
+for bytes in range(5, 125, 5):
+    data_size.append(bytes)
+    packet = []
+    time_send.append(time.time())
+    ble.send_command(CMD.ECHO, "a"*bytes)
+    
+    while not packet:
+        time_receive.append(time.time())</code></div></div>
+                                <p>Output from the Jupyter notebook is shown below. The datarate increases 
+                                    linearly with respect to the packet size, indicating that short packets 
+                                    introduce significant overhead, whereas big packets helps with amortization. </p>
+                                    <img class="mb-2" width="420" src="assets/img/lab1_9.png" alt="..." />
+                            </div>
+
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Task 10: Reliability </div>
+                                <p>After experimenting with sending a large number of messages at a high rate from the Artemis board to the computer, 
+                                    the communication appears to be reasonably reliable, and all the data published from the board was received by the computer.  </p>
+                                </div>
+
+                            <div class="mb-5">
+                                <div class="subheading mb-0">Discussion </div>
+                                <p>In this lab I learned about the BLE communication scheme and its restrictions, which is going to be very useful in the future labs when we need to send data from the robot to the computer. 
+                                    I was initially struggling with understanding the BLE code structure but was able to make good progress after reading the documentation. 
+                                </div>
+                            
+                        </div>
                     </div>
                 </div>
             </section>
@@ -84,38 +407,7 @@
             <section class="resume-section" id="Lab 2">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Lab 2</h2>
-                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">Senior Web Developer</h3>
-                            <div class="subheading mb-3">Intelitec Solutions</div>
-                            <p>Bring to the table win-win survival strategies to ensure proactive domination. At the end of the day, going forward, a new normal that has evolved from generation X is on the runway heading towards a streamlined cloud solution. User generated content in real-time will have multiple touchpoints for offshoring.</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">March 2013 - Present</span></div>
-                    </div>
-                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">Web Developer</h3>
-                            <div class="subheading mb-3">Intelitec Solutions</div>
-                            <p>Capitalize on low hanging fruit to identify a ballpark value added activity to beta test. Override the digital divide with additional clickthroughs from DevOps. Nanotechnology immersion along the information highway will close the loop on focusing solely on the bottom line.</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">December 2011 - March 2013</span></div>
-                    </div>
-                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">Junior Web Designer</h3>
-                            <div class="subheading mb-3">Shout! Media Productions</div>
-                            <p>Podcasting operational change management inside of workflows to establish a framework. Taking seamless key performance indicators offline to maximise the long tail. Keeping your eye on the ball while performing a deep dive on the start-up mentality to derive convergence on cross-platform integration.</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">July 2010 - December 2011</span></div>
-                    </div>
-                    <div class="d-flex flex-column flex-md-row justify-content-between">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">Web Design Intern</h3>
-                            <div class="subheading mb-3">Shout! Media Productions</div>
-                            <p>Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI.</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">September 2008 - June 2010</span></div>
-                    </div>
+                    
                 </div>
             </section>
             <hr class="m-0" />
@@ -123,126 +415,29 @@
             <section class="resume-section" id="Lab 3">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Lab 3</h2>
-                    <div class="d-flex flex-column flex-md-row justify-content-between mb-5">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">University of Colorado Boulder</h3>
-                            <div class="subheading mb-3">Bachelor of Science</div>
-                            <div>Computer Science - Web Development Track</div>
-                            <p>GPA: 3.23</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">August 2006 - May 2010</span></div>
-                    </div>
-                    <div class="d-flex flex-column flex-md-row justify-content-between">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">James Buchanan High School</h3>
-                            <div class="subheading mb-3">Technology Magnet Program</div>
-                            <p>GPA: 3.56</p>
-                        </div>
-                        <div class="flex-shrink-0"><span class="text-primary">August 2002 - May 2006</span></div>
-                    </div>
+                    
                 </div>
             </section>
-            <hr class="m-0" />
             <!-- Lab 4-->
             <section class="resume-section" id="Lab 4">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Lab 4</h2>
-                    <div class="subheading mb-3">Programming Languages & Tools</div>
-                    <ul class="list-inline dev-icons">
-                        <li class="list-inline-item"><i class="fab fa-html5"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-css3-alt"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-js-square"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-angular"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-react"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-node-js"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-sass"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-less"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-wordpress"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-gulp"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-grunt"></i></li>
-                        <li class="list-inline-item"><i class="fab fa-npm"></i></li>
-                    </ul>
-                    <div class="subheading mb-3">Workflow</div>
-                    <ul class="fa-ul mb-0">
-                        <li>
-                            <span class="fa-li"><i class="fas fa-check"></i></span>
-                            Mobile-First, Responsive Design
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-check"></i></span>
-                            Cross Browser Testing & Debugging
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-check"></i></span>
-                            Cross Functional Teams
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-check"></i></span>
-                            Agile Development & Scrum
-                        </li>
-                    </ul>
+                    
                 </div>
             </section>
-            <hr class="m-0" />
             <!-- Lab 5-->
             <section class="resume-section" id="Lab 5">
                 <div class="resume-section-content">
                     <h2 class="mb-5">Lab 5</h2>
-                    <p>Apart from being a web developer, I enjoy most of my time being outdoors. In the winter, I am an avid skier and novice ice climber. During the warmer months here in Colorado, I enjoy mountain biking, free climbing, and kayaking.</p>
-                    <p class="mb-0">When forced indoors, I follow a number of sci-fi and fantasy genre movies and television shows, I am an aspiring chef, and I spend a large amount of my free time exploring the latest technology advancements in the front-end web development world.</p>
+                    
                 </div>
             </section>
-            <hr class="m-0" />
             <!-- Lab 6-->
             <section class="resume-section" id="Lab 6">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 6 & Certifications</h2>
-                    <ul class="fa-ul mb-0">
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            Google Analytics Certified Developer
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            Mobile Web Specialist - Google Certification
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            1
-                            <sup>st</sup>
-                            Place - University of Colorado Boulder - Emerging Tech Competition 2009
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            1
-                            <sup>st</sup>
-                            Place - University of Colorado Boulder - Adobe Creative Jam 2008 (UI Design Category)
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            2
-                            <sup>nd</sup>
-                            Place - University of Colorado Boulder - Emerging Tech Competition 2008
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            1
-                            <sup>st</sup>
-                            Place - James Buchanan High School - Hackathon 2006
-                        </li>
-                        <li>
-                            <span class="fa-li"><i class="fas fa-trophy text-warning"></i></span>
-                            3
-                            <sup>rd</sup>
-                            Place - James Buchanan High School - Hackathon 2005
-                        </li>
-                    </ul>
+                    <h2 class="mb-5">Lab 6</h2>
+                    
                 </div>
             </section>
-        </div>
-        <!-- Bootstrap core JS-->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="js/scripts.js"></script>
     </body>
 </html>
