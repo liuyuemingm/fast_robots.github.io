@@ -403,10 +403,153 @@ for bytes in range(5, 125, 5):
                 </div>
             </section>
             <hr class="m-0" />
+
+
+
             <!-- Lab 2-->
             <section class="resume-section" id="Lab 2">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 2</h2>
+                    <h2 class="mb-0">Lab 2 <span class="text-primary">IMU</span></h2>
+                    <p class="mb-5">The goal of this lab is to characterize and test the  Inertial Measurement Unit (IMU). </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 1: IMU Setup</div>
+                        <p>I installed the necessary library for the ICM 20948 Inertial Measurement Unit (IMU), 
+                            connected the IMU to the Artemis board with a QWIIC connector as shown below, and ran the first example in the ICM-20948 Library which prints the IMU measurements.
+                            The AD0_VAL is the value of the last bit of the I2C address. Since my ADR jumper is open, the AD0_VAL should be default to 1. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab2_1.jpeg" alt="..." />
+                        <p>I included start-up blink in the example code as shown in the video. The accelerometer readings do not change significantly when I rotate the sensor around the z-axis slowly; 
+                            It changes when I accelerate, flip, or rotate the sensor around a different axis. The Gyroscope readings do not change significantly when I linearly accelerate or slowly rotate the sensor. It changes
+                            when I flip or rotate the sensor quickly.  </p>
+                        <iframe width="420" height="315"
+                            src="https://www.youtube.com/embed/-sq594vBxdk">
+                        </iframe>
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 2: Accelerometer</div>
+                        <p>I used the equations from class to convert the accelerometer data into pitch and roll. </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2</div>
+                        <div class="code-content"><code class="mb-0">pitch_a = atan2(myICM.accY(),myICM.accZ())*180/M_PI;<br>roll_a  = atan2(myICM.accX(),myICM.accZ())*180/M_PI;</code></div></div>
+                        <p>The picture below shows the output from the Serial Monitor at {-90, 0, 90} degrees pitch and roll. 
+                            The accelerometer is fairly accurate, with error bound within +/-0.5 degree. Therefore I do not think a two-point calibration is needed for this sensor: </p>
+                        <img class="mb-2" width="840" src="assets/img/lab2_2.JPG" alt="..." />
+                        <p>Once the IMU sensors is mounted on the car, it will receive a lot of noise from the environement. In order to filter out some of the noises, we need to first apply Fourier Transform to 
+                            the raw data, and from the Fourier Transform we can find a cutoff frequency that separate the noise from the useful information. We can then implement a low pass filter (LPF) with this cutoff frequency to clean up the raw data. 
+                            The following plots show the raw data from some test runs and the Fourier Transforms of the pitch and roll readings from the accelerometer: 
+                        </p>
+                        <img class="mb-2" height="315" src="assets/img/lab2_3.png" alt="..." />
+                        <img class="mb-2" height="315" src="assets/img/lab2_4.png" alt="..." />
+                        <img class="mb-2" height="315" src="assets/img/lab2_5.png" alt="..." />
+                        <img class="mb-2" height="315" src="assets/img/lab2_6.png" alt="..." />
+                        <p>As shown in the FFT plots above, there is a peak of noise at around 50Hz for both pitch and roll data, 
+                            and 10Hz appears to be a good cut-off frequency in this case, although this number is subject 
+                            to change after the sensor is mounted on the robot. The implementation of the low pass filter and the results are shown below. 
+                        After applying the filter, the data preserves the overall trend but is much less noisy:</p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</div>
+                        <div class="code-content"><code class="mb-0">fc = 10
+T = (time_a[-1] - time_a[0])/(len(time_a)-1)
+RC = 1 / (2 * np.pi * fc)
+alpha = T / (T + RC)
+pitch_a_LPF = [0]*len(pitch_a)
+
+for n in range(1, len(pitch_a)):
+    pitch_a_LPF[n] = alpha*pitch_a[n] + (1-alpha)*pitch_a_LPF[n-1]
+    pitch_a_LPF[n-1] = pitch_a_LPF[n]</code></div></div>
+                        <img class="mb-2" height="315" src="assets/img/lab2_7.png" alt="..." />
+                        <img class="mb-2" height="315" src="assets/img/lab2_8.png" alt="..." />
+                        </div>
+                        
+
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 3: Gyroscope</div>
+                        <p>I used the equations from class to convert the gyroscope data into pitch, roll, and yaw by estimating the angles using angle derivatives from the myICM.gyrX(), myICM.gyrY(), and myICM.gyrZ() output: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3</div>
+                        <div class="code-content"><code class="mb-0">pitch_g = pitch_g + myICM.gyrX()*dt;<br>roll_g = roll_g + myICM.gyrY()*dt;<br>yaw_g = yaw_g + myICM.gyrZ()*dt;</code></div></div>
+                        <p>As shown below, for both the pitch and roll data, the overall trend from the accelerometer 
+                            and the gyroscope match closely. However, data from gyroscope appears to have a increasing 
+                            drift, despite being more accurate at the beginning and less noisy overall. In order to 
+                            account for the drift in the gyroscope and the noise and inaccuracy in the accelerometer, 
+                            I applied a complementary filter with alpha = 0.01: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2</div>
+                        <div class="code-content"><code class="mb-0">pitch = (pitch+myICM.gyrX()*dt)*(1-alpha_cf) + pitch_a*alpha_cf;<br>roll = (roll+myICM.gyrY()*dt)*(1-alpha_cf) + roll_a*alpha_cf;</code></div></div>
+                        <img class="mb-2" width="420" src="assets/img/lab2_9.png" alt="..." />
+                        <img class="mb-2" width="420" src="assets/img/lab2_10.png" alt="..." />
+                        <img class="mb-2" width="420" src="assets/img/lab2_11.png" alt="..." />
+                        <p>For the plot below, I lowered the sampling frequency, and the angle estimation appears to be a lot worse eventhough the overall trend still match up between the accelerometer and the gyroscope. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab2_12.png" alt="..." />
+                        
+                        
+                        
+                            
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 4: Sample Data</div>
+                        <p>I sped up the execution of my loop for the Artemis board by removing all the delays 
+                            and Serial print statements. </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25</div>
+                        <div class="code-content"><code class="mb-0">case GET_IMU_ACC_READINGS:{
+int c = 0;
+    while(true){
+        if (myICM.dataReady())
+        {
+            timeStamps[c] = (int) millis();
+            myICM.getAGMT(); 
+            pitch_a_data[c] = get_pitch_a();
+            roll_a_data[c] = get_roll_a();
+        }
+        c++;
+        if(c > numTimeStamps-1){
+            break;
+        }
+    }
+    for (int i = 0; i < numTimeStamps; i++) {
+        tx_estring_value.clear();
+        tx_estring_value.append(timeStamps[i]);
+        tx_estring_value.append("|");
+        tx_estring_value.append(pitch_a_data[i]);
+        tx_estring_value.append("|");
+        tx_estring_value.append(roll_a_data[i]);
+        tx_characteristic_string.writeValue(tx_estring_value.c_str());
+    }  
+}break;</code></div></div>
+                        <p>As shown below, the sampled values are stored in the form of
+                            ‘time_stamp | pitch_a | roll_a | pitch_g_raw | roll_g_raw | yaw_g_raw', 
+                               and I was able to collect 1000 data points in 5.567s, so the sampling rate is 179 data points/second. 
+                               The main loop on my Artemis board does not run faster than the IMU produces new values.</p>
+                        <img class="mb-2" width="840" src="assets/img/lab2_13.png" alt="..." />
+
+                        <p>It worked for me to have separate arrays for storing accelerometer and gyroscope data as sometimes we 
+                            need to access them separately for calculations. However, I did combine them together with the timestamp 
+                            into one string for data transmission. This allows me to send over information of different data types 
+                            (int and float) at once, reducing the overhead for data transmission. </p>
+                        <p>The Artemis board has 384 kB of RAM, and each datapoint (1x int and 5x float) is 24 Bytes, 
+                            meaning that it can take at most 16,000 data points. With a rate of 179 data points/second, 
+                            this memory corresponds to 89 seconds of IMU data.</p>
+                        <p>All plots in Task 3. Gyroscope (the second above) demonstrates that my board can capture at least 5s worth of IMU data 
+                            and send it over Bluetooth to the computer.</p>
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 5: Record a Stunt</div>
+                        <p>Here is the car doing a backflip! The easiest way to do a backflip is to reverse direction rapidly or have the robot bump into an obstacle. </p>
+                        
+                            <iframe width="420" height="315"
+                            src="https://www.youtube.com/embed/Ibk4pZxtz9s">
+                        </iframe>
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Discussion</div>
+                        <p>It is important to use the correct filter for different data, and be mindful about how the data is stored and transmitted as we incorporate more sensors. </p>
+                        
+                    </div>
+
                     
                 </div>
             </section>
