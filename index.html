@@ -518,7 +518,7 @@ int c = 0;
     }  
 }break;</code></div></div>
                         <p>As shown below, the sampled values are stored in the form of
-                            ‘time_stamp | pitch_a | roll_a | pitch_g_raw | roll_g_raw | yaw_g_raw', 
+                            'time_stamp | pitch_a | roll_a | pitch_g_raw | roll_g_raw | yaw_g_raw', 
                                and I was able to collect 1000 data points in 5.567s, so the sampling rate is 179 data points/second. 
                                The main loop on my Artemis board does not run faster than the IMU produces new values.</p>
                         <img class="mb-2" width="840" src="assets/img/lab2_13.png" alt="..." />
@@ -557,7 +557,128 @@ int c = 0;
             <!-- Lab 3-->
             <section class="resume-section" id="Lab 3">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 3</h2>
+
+                    
+                    <h2 class="mb-0">Lab 3 <span class="text-primary">ToF Sensor</span></h2>
+                    <p class="mb-5">The goal of this lab is to incorporate and characterize two Time-of-Flight (ToF) sensors in parallel. </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Prelab</div>
+                        <p>According to the <a href="https://cdn.sparkfun.com/assets/8/9/9/a/6/VL53L0X_DS.pdf">datasheet</a>, the ToF sensor uses the I2C protocal with the default address 0x52. Therefore, in order to use two ToF sensors at the same time, we need to change the address of one of the sensors. We can do that by connecting the XSHUT pin of one ToF sensor to a GPIO pin, and after each reboot: </p>
+                        <p>1. Turn off sensor 1 by setting XSHUT low. <br>
+                           2. Now that we are able to uniquely address sensor 2, change its address.<br>
+                           3. Turn on sensor 1 by setting XSHUT high. </p>
+                        <p>Thus we are able to address two sensors simutaneously. A wiring diagram is shown below, note that here the XSHUT of sensor 1 is connected to GPIO 8. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_1.jpeg" alt="..." />
+                        <p>In terms of sensor placements, I'm planning to put one sensor at the front of the car to detect obstacles in its path, and another on the side to facilitate tasks like wall-following or map-reconstruction. 
+                            With this setup, I won't be able to detect obstacles on the other side or at the back. </p>
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Connections</div>
+                        <p>I soldered the JST connectors to the battery, and the QWIIC connectors to the ToF sensors. 
+                            The picture below shows the connections between ToF sensors, IMU, Artemis Nano, and the QWIIC breakout board. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_2.jpeg" alt="..." />
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">I2C Scanning</div>
+                        <p>I ran the example File->Examples->Apollo3->Example05_Wire_I2C to identify the address of the ToF sensor. 
+                            The displayed address is 0x29 (or 0b00101001 in binary) as shown below, which does not match the 0x52 (or 0b01010010 in binary) on the datasheet. 
+                            This is because the ToF uses the last bit to specify the data direction (0 for read, 1 for write), and the example code only reads the first 7 bits.
+                            We can verify this by checking that 0x29 is indeed 0x52 left-shifted by 1 bit. 
+                        </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_3.png" alt="..." />
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">ToF Sensor Modes</div>
+                        <p>
+                            The VL53L1X ToF sensor offers three distance modes: Short, Medium, and Long. 
+                            Short mode (max 1.3 m) is more resistant to ambient light, making it ideal for close-range obstacle detection. 
+                            Long mode (max 4 m) provides the farthest range but is significantly affected by ambient light. 
+                            Medium mode (max 3 m) offers a balance between range and light resistance. <br>
+                            I tested the sensors measurements by setting them at certain distances away from a wall and take measurements. A setup of the test is shown below. 
+                        </p>
+
+                        <img class="mb-2" width="420" src="assets/img/lab3_4.jpeg" alt="..." />
+                        <p>I chose the short mode since 1.3m appears to be a reasonable maximum distance for the robot to detect obstacles. 
+                            As shown below, both sensors are able to detect distances up to about 1.7m, and with decent accuracy. 
+                            I took 50 measurements for each distance for each sensor, and the variances are shown as error bars below. 
+                            The fact that the variances are small and that both sensor data closely align show that the sensor readings are repeatable. 
+                        </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_5.png" alt="..." />
+                        <p>The ranging time varies between 55ms for distance of ~54mm to 35ms for distance of ~1580mm, calculated from the screenshots below.  </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_6.png" alt="..." />
+                        <img class="mb-2" width="420" src="assets/img/lab3_7.png" alt="..." />
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">ToF Sensor Parallel Connection</div>
+                        <p>As described in the prelab, in order for the sensor to run in parallel, one of them needs to have the address reconfigured 
+                            after each reboot:  </p>
+
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
+                        <div class="code-content"><code class="mb-0">pinMode(8, OUTPUT); 
+digitalWrite(8, LOW); // shut down sensor 1
+distanceSensor2.setI2CAddress(addr); // set address of sensor 2
+... // confirm sensor 2 is online
+digitalWrite(8, HIGH); // turn on sensor 1
+... // confirm sensor 1 is online</code></div></div>
+                        <p>Both sensors are outputting at the same time as expected. Notice that sensor 2 consistantly outputs a higher value, therefore an offset needs to be added in the future:  </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_8.png" alt="..." /><br>
+                        <iframe width="420" height="315"
+                                    src="https://www.youtube.com/embed/4q0z7uQQPBY">
+                                </iframe>
+                        
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">ToF Sensor Speed</div>
+                        <p>I removed the delay in the code and only output the sensor readings when the data is ready. 
+                            The delay between sensor readings are around 40ms, which is much slower than the Artemis clock speed, 
+                            therefore the limiting factor is the sensor reading speed. </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14</div>
+                        <div class="code-content"><code class="mb-0">if (distanceSensor1.checkForDataReady()){
+int distance1 = distanceSensor1.getDistance();
+distanceSensor1.clearInterrupt();
+distanceSensor1.stopRanging();
+Serial.print("Distance 1(mm): ");
+Serial.println(distance1);
+}
+if (distanceSensor2.checkForDataReady()){
+int distance2 = distanceSensor2.getDistance();
+distanceSensor2.clearInterrupt();
+distanceSensor2.stopRanging();
+Serial.print("Distance 2(mm): ");
+Serial.println(distance2);
+}</code></div></div>
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">ToF + IMU</div>
+                        <p>The following show the ToF sensor and IMU data collected at the same time by waving hand in front of the ToF sensor and swining the IMU sensor. Unfortunately my second ToF broke at this point so I was only able to record data from one ToF sensor. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab3_9.png" alt="..." />
+                        
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Discussion</div>
+                        <p>Infrared sensors include Active IR sensors and Passive IR sensors. 
+                            Active IR sensors are low-cost, simple, and fast but have limited range, 
+                            making them ideal for short-range applications. 
+                            The ToF sensors are an example of Active IR sensors. 
+                            Passive IR sensors are energy-efficient, but are more sensitive to environmental changes. <br>
+
+                            I tested the sensors on the white walls, white blankets, and dark-blue blankets with the same distances to see if textures and colors affect the readings. 
+                            I noticed that sensors readings are similar and accurate for the wall and the white blankets, but slightly smaller for the dark-blue blankets. 
+                            From this prelimiary experient it appears that the sensors are more sensitive to colors than textures. 
+                        </p>
+                        
+                    </div>
                     
                 </div>
             </section>
