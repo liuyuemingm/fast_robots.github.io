@@ -625,7 +625,7 @@ distanceSensor2.setI2CAddress(addr); // set address of sensor 2
 ... // confirm sensor 2 is online
 digitalWrite(8, HIGH); // turn on sensor 1
 ... // confirm sensor 1 is online</code></div></div>
-                        <p>Both sensors are outputting at the same time as expected. Notice that sensor 2 consistantly outputs a higher value, therefore an offset needs to be added in the future:  </p>
+                        <p>Both sensors are outputting at the same time as expected. Notice that sensor 2 consistently outputs a higher value, therefore an offset needs to be added in the future:  </p>
                         <img class="mb-2" width="420" src="assets/img/lab3_8.png" alt="..." /><br>
                         <iframe width="420" height="315"
                                     src="https://www.youtube.com/embed/4q0z7uQQPBY">
@@ -685,9 +685,164 @@ Serial.println(distance2);
             <!-- Lab 4-->
             <section class="resume-section" id="Lab 4">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 4</h2>
+                    <h2 class="mb-0">Lab 4 <span class="text-primary">Motors and Open Loop Control</span></h2>
+                    <p class="mb-5">The goal of Lab 4 is to fully put together the robot and be able to drive it with open loop control. </p>
                     
-                </div>
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Prelab</div>
+                        <p>The following is a diagram of the connections between the Artemis board, the motor drivers, and the motors. 
+                            Here pins 4, 5, 11, 12 are used on the Artemis board to driver the motors. 
+                            In order to supply the motors with a larger current than the upper limit of the motor driver pins, 
+                            we parallel-couple the two inputs and outputs on each dual motor driver. Additionally, we use separate 
+                            batteries that share the same ground for the board and the motors to decouple their performance and reduce noise.</p>
+                        <img class="mb-2" width="420" src="assets/img/lab4_1.jpg" alt="..." />
+                    </div>
+
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Motor driver tests</div>
+                        <p>
+                            Before connecting all components to the robot, I first tested the motor drivers using the power supply to ensure 
+                            the output PWM signals are correct. Below is the setup of one of the motor drivers hooked up to the oscilloscope
+                            and the power supply. The voltage setting in the power supply is 3.7 V, which matches the output of the batteries. 
+                        </p>
+                        <img class="mb-2" width="420" src="assets/img/lab4_2.jpg" alt="..." />
+                        <p>
+                            The code used to drive the motor drivers: 
+                        </p>
+
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
+                        <div class="code-content"><code class="mb-0">#define AB1IN_R 12 // green
+#define AB2IN_R 11 // yellow
+void setup() {
+    pinMode(AB1IN_R,OUTPUT);
+    pinMode(AB2IN_R,OUTPUT);
+}
+void loop() {
+    analogWrite(AB1IN_R,100); 
+    analogWrite(AB2IN_R,0);
+}</code></div></div>
+                        <p>Outputs from the oscilloscope change as expected when the analogWrite values change. 
+                            Between the first and second image below, I flipped the signal of analogWrite and thus changed 
+                            the output for the green wire from High to Low. A smaller wave signal is reflected in the oscilloscope: </p>
+                        <img class="mb-2" width="420" src="assets/img/lab4_3.jpeg" alt="..." />
+                        <img class="mb-2" width="420" src="assets/img/lab4_4.jpeg" alt="..." />
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Spinning Wheels</div>
+                        <p>After ensuring both motor drivers work, I proceeded to wire all components to the car
+                            and was able to spin both the left and right wheels with the power supply.</p>
+                        <iframe width="420" height="315"
+                            src="https://www.youtube.com/embed/10wRcF9CLVg">
+                        </iframe>
+                        <p>The code used in this section is similar to the last one: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
+                        <div class="code-content"><code class="mb-0">#define AB1IN_R 12 // green
+#define AB2IN_R 11 // yellow
+void setup() {
+    pinMode(AB1IN_R,OUTPUT);
+    pinMode(AB2IN_R,OUTPUT);
+}
+void loop() {
+    analogWrite(AB1IN_R,250); 
+    analogWrite(AB2IN_R,0);
+}</code></div></div>
+                    </div>
+                        <p>After both wheels were able to spin as expected, I connected the motor drivers to the batteries.
+                            The following video show all wheels running on the battery. 
+                        </p>
+                        <iframe width="420" height="315"
+                            src="https://www.youtube.com/embed/EfQTkmApGKQ">
+                        </iframe>
+                        <p>Below are pictures of all the components secured in the car: </p>
+                        <img class="mb-2" width="630" src="assets/img/lab4_5.jpg" alt="..." />
+                    
+               
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">PWM and Calibartion</div>
+                    <p>The range of PWM signal is from 0 to 255. In order to find the lower limits of PWM that allow the robot to move,
+                        I gradually increment the value passed into analogWrite from 0 to up to 65. It appears that the left wheel 
+                        constantly encounters more resistance than the right wheel, and a offset of 20 is needed for them to achieve 
+                        the same performance. Therefore the lower limits of PWM are 65 for the left wheel and 45 for the right wheel. 
+                        After applying this offset the robot is able to move in a straight line. Below is a video showing that the robot
+                        stays within the center lane for about 7ft. </p> 
+                        <iframe height="315"
+                            src="https://www.youtube.com/embed/NWMHxK7wReU">
+                        </iframe>
+                    
+                </div> 
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Open Loop Control</div>
+                    <p>Below is an open loop control for the robot to stop in front of the door with a slight turn.  </p> 
+                        <iframe height="315"
+                            src="https://www.youtube.com/embed/zy4RMzVPdkM">
+                        </iframe>
+
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8</div>
+                        <div class="code-content"><code class="mb-0">void loop() {
+    forward(200);
+    delay(3000);
+    turn_right(200);
+    delay(300);
+    stop();
+    delay(10000);
+}</code></div></div>
+
+                        <p>Functions used are defined as follows, for example: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
+                        <div class="code-content"><code class="mb-0">void forward(int dc){
+    analogWrite(AB1IN_R,0); 
+    analogWrite(AB2IN_R,dc);
+    analogWrite(AB1IN_L,0); 
+    analogWrite(AB2IN_L,dc+20); 
+}</code></div></div>
+                    
+                </div> 
+
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">PWM Limit to Stop Motion</div>
+                    <p>Once the robot is in motion, it requires a smaller PWM value to continue moving foward. 
+                        I used the following code to determine this lower PWM limit, which decreases the PWM value 
+                        every few seconds until we observe that the robot stops. The lower limit is about 25 for the right wheel
+                        and 45 for the left wheel. My robot has sticky wheels and does not have consistent PWM that keeps it moving at the lowest speed. </p> 
+                    <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7</div>
+                    <div class="code-content"><code class="mb-0">int PWM = 50;
+void loop() {
+    forward(PWM);
+    delay(3000);
+    blink();
+    PWM = PWM - 5;
+}</code></div></div>
+                    
+                </div> 
+
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Speed of analogWrite()</div>
+                    <p>The following code is used to check the analog write frequency: </p> 
+                    <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6</div>
+                    <div class="code-content"><code class="mb-0">float pre_t = 0;
+void loop() {
+    analogWrite(AB1IN_R,100); 
+    Serial.println(micros()-pre_t);
+    pre_t = micros();
+}</code></div></div>
+                    <img class="mb-2" width="210" src="assets/img/lab4_6.png" alt="..." />
+                    <p>It appears that the delay between analog writes is around 5.1ms. 
+                        This is comparable to my IMU delay found in Lab 2 (~5.5ms). 
+                        Since a general rule of thumb of feedback control is that the sampling frequency (IMU)
+                        should be significantly higher than the control frequency (analog write), this delay time 
+                        for analog write is acceptable. Manually configuring the timers to generate a faster PWM signal
+                        could potentially create a smoother output for quick response in the robot, but will not 
+                    have significant impact on the feedback control performance. </p>
+                    
+                </div> 
+
+            </div>
             </section>
             <!-- Lab 5-->
             <section class="resume-section" id="Lab 5">
