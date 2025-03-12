@@ -847,9 +847,137 @@ void loop() {
             <!-- Lab 5-->
             <section class="resume-section" id="Lab 5">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 5</h2>
                     
+                
+                    <h2 class="mb-0">Lab 5 <span class="text-primary">Linear PID control and Linear interpolation</span></h2>
+                    <p class="mb-5">The goal of is to drive the robot towards a wall and stop it 1ft in front of the wall. </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Prelab</div>
+                        <p> In order to make debugging and tuning the controller easier during the lab, I set up the program such that the robot  
+                            start on an input from my computer sent over Bluetooth, where the numbers passed in are Kp, Ki, Kd, and maximum speed percentage: </p>
+                            <div class="code-container"><div class="line-numbers">1<br>2</div>
+                    <div class="code-content"><code class="mb-0">ble.start_notify(ble.uuid['RX_STRING'], pid_position_control)
+ble.send_command(CMD.PID_POSITION, "0.03|0.001|1|50")</code></div></div>
+                        <p>Upon receiving the Bluetooth command, the robot will run the PID controller for a fixed amount of time: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14</div>
+                        <div class="code-content"><code class="mb-0">case PID_POSITION:
+    Extract the next values from the command string and save them as Kp, Ki, Kd, max_speed_percentage
+    initialize ToF sensor
+    initilize motor
+
+    while time is less than PID running time 
+        record current time stamp in an array
+        run get_ToF() and record current ToF data in an array
+        run position_PID() to set the controller speed
+        drive the robot with controller speed
+        record Kp, Ki, and Kd terms in separate arrays
+    
+    set robot speed to zero
+    send over recorded data to computer via Bluetooth
+</code></div></div>
                 </div>
+
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Tuning Controller</div>
+                    <p>I rescaled the PWM to speed percentage which ranges from 0 to 100.</p>
+                    <p>First I implemented the P controller with Kp = 0.01. This value is chosen such 
+                        that there it will not be able to overcome static disturbance when it's close enough to 1ft from the wall,
+                        as shown below in the plot and the video.  
+                        Later I'll demonstrate that adding I controller will make up for that. 
+                    </p>
+                    <img class="mb-2" width="420" src="assets/img/lab5_1.png" alt="..." /><br>
+                    <iframe width="420" height="315"
+                    src="https://www.youtube.com/embed/nvVrYGqPiDs">
+                </iframe>
+
+                    <p>I then added the I controller with partial wind-up protection with Kp = 0.015 (a small increase from
+                        before but still not able to overcome static friction) and Ki = 0.0001. With this additional control, 
+                        robot is able to overshoot slightly and back up properly. </p>
+                    <img class="mb-2" width="420" src="assets/img/lab5_2.png" alt="..." /><br>
+                    <iframe width="420" height="315"
+                    src="https://www.youtube.com/embed/NiE1tCG5g6c">
+                </iframe>
+
+                    <p>I then added the D controller to provid some damping and reduce the overshoot. 
+                        The plot below is with Kp = 0.015, Ki = 0.0002, and Kd = 1. Notice that the Kd term counter acts the 
+                        other terms to provide some damping. I decided that the derivative kick prevention is not necessary here
+                        because we do not need to change the set point during the run. 
+                    </p>
+                    <img class="mb-2" width="420" src="assets/img/lab5_3.png" alt="..." />
+
+                    <p>The complete code for the controller is below: </p>
+                    <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23</div>
+                        <div class="code-content"><code class="mb-0">void position_PID (float meas_dist, int current_time, int prev_time, float prev_err) {
+    int dt = current_time - prev_time; 
+    float err = meas_dist - set_dist;
+    float derivative_err = (err - prev_err) / dt;
+    float PID = Kp * err + Ki * (integral_err + (err * dt)) + Kd * derivative_err; 
+    
+    // anti wind-up
+    bool clipping = (abs(PID)>max_speed_percent); 
+    bool control_sign_match = (err * PID >= 0); 
+    
+    if (abs(err)<=10) { 
+        integral_err = 0; 
+    }else if (!clipping && !control_sign_match){ 
+        integral_err = integral_err + (err * dt);
+    } 
+    
+    Kp_term = Kp * err;
+    Ki_term = Ki * integral_err;
+    Kd_term = Kd * derivative_err;
+    speed_percent = Kp_term + Ki_term + Kd_term;
+    speed_percent_2_PWM();
+    drive(PWM_R, PWM_L);
+}
+</code></div></div>
+                
+
+                    <p>With PID fully implemented, I was able to tune them to a faster speed without running into wall. 
+                        The highest velocity calculated from the plot below is 1.6m/s, with Kp = 0.05, Ki = 0.0001, Kd = 1, and 70% of highest speed. </p>
+                        <img class="mb-2" width="420" src="assets/img/lab5_4.png" alt="..." />
+                        <br>
+                        <iframe width="420" height="315"
+                        src="https://www.youtube.com/embed/-eKCg7-ynjE">
+                    </iframe>
+
+                </div>
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Range/Sampling Time Discussion</div>
+                    <p>I was able to decouple the ToF sampling rate from the controller output rate 
+                        by using the latest data available without waiting for the ToF sensor to sample.
+                        To achieve this, I removed the delay in the function get_ToF() in line 8 in the pseudo code section in Prelab. 
+                        The sampling delay for ToF found in lab 3 was about 55ms, and the control delay here, 
+                        found from (final time - start time)/number of samples, is about 9ms. </p>
+                    <p>I used the long mode for ToF sensor to meet the requirements of starting from 2-4m from the wall. 
+                    </p>
+                </div>
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Wind-up Discussion</div>
+                    <p>Lines 8 - 9 and 13 in the code from the previous section is implemented for wind-up protection. 
+                        Line 8 pauses integration when the controller is saturated, which is important because we loose control when the 
+                        motor is saturated. This is especially useful when Kp gain is high.  
+                        Line 9 pauses integration when the control direction matches the error direction, which is important especially for 
+                        low Kp gains because it can significantly reduce the overshoot. Below is a demonstration without wind-up: </p>
+                        <iframe width="420" height="315"
+                        src="https://www.youtube.com/embed/Wryk5VMNiQM">
+                    </iframe>
+                        <p>With wind-up, the system behaves well even with different floor conditions. </p>
+                        <iframe width="420" height="315"
+                        src="https://www.youtube.com/embed/JBXl523rkIE">
+                    </iframe>
+
+                </div>
+
+                
+
+
+
+
             </section>
             <!-- Lab 6-->
             <section class="resume-section" id="Lab 6">
