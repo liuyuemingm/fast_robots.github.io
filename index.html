@@ -32,6 +32,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 4">Lab 4</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 5">Lab 5</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 6">Lab 6</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 7">Lab 7</a></li>
                 </ul>
             </div>
         </nav>
@@ -985,6 +986,178 @@ ble.send_command(CMD.PID_POSITION, "0.03|0.001|1|50")</code></div></div>
                     <h2 class="mb-5">Lab 6</h2>
                     
                 </div>
+            </section>
+            
+            <!-- Lab 7-->
+            <section class="resume-section" id="Lab 7">
+                <div class="resume-section-content">
+                    <h2 class="mb-0">Lab 7 <span class="text-primary">Karman Filter</span></h2>
+                    <p class="mb-5">The goal of this lab is to implement Karman Filter on the ToF sensor data to allow for faster execution of the controller. </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Task 1. Estimate Drag and Momentum</div>
+                        <p>In order to implement the Karman Filter, we first need to model the system with state-space representation.
+                            The following equations describe the steps of obtaining the dynamic equation, where x is the distance between the 
+                            car and the wall, u is the control input, and d is the coefficient of drag force. 
+                        </p>
+                        <img class="mb-2" width="140" src="assets/img/lab7_1.png" alt="..." />
+                        <img class="mb-2" width="210" src="assets/img/lab7_3.png" alt="..." /><br>
+                        <p>The unknown parameters are d and m, which we can obtain from an open loop run of the robot with a step input. 
+                            <br>
+                            When the velocity reaches steady state, the acceleration is zero, and we can calculate the drag coefficient:
+                        </p>
+                        <img class="mb-2" width="230" src="assets/img/lab7_2.png" alt="..." /><br>
+                        <p>
+                            This is a first-order system for velocity. As the system is reaching the steady state speed, 
+                            we can express the velocity in terms of time as shown in the following equations.
+                            By finding the 90% rise time and 90% velocity, we can calculate the equivalent mass of the system. 
+                        </p>
+                        <img class="mb-2" width="360" src="assets/img/lab7_4.png" alt="..." /><br>
+                        <p>Finally, using the parameters found, we can construct the state space representation of the car: </p>
+                        <img class="mb-2" width="300" src="assets/img/lab7_5.png" alt="..." /><br>
+                        <p>Running the car at about 55% of the maximum motor speed while collecting ToF gives the following data: </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_6.png" alt="..." /><br>
+                        <p>With simple processing of the data, I found the steady state speed to be about 2.43mm/ms, 
+                            and the time to reach 90% of steady state speed is about 925ms: </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_7.png" alt="..." /><br>
+                        <p>From there, we can estimate the drag coefficient d = 55/2.43 = 22.6, and equivalent mass m = -22.6*925/ln(0.1) = 9090. </p>
+
+
+                     </div>
+
+                     <div class="mb-5">
+                        <div class="subheading mb-0">Task 2. Initialize KF</div>
+                        <p>We have the values for A and B matrices from the previous section. 
+                            Since both the ToF sensor collects data and the controller sends commands at discontinuous time steps,
+                            it is necessary to discretize our state space representation: </p>
+                            <img class="mb-2" width="360" src="assets/img/lab7_8.png" alt="..." /><br>
+                        <p>Here dt is the time between each loop of the control signal. 
+                            From data collected in Task 1, the control loop is able to send about 135 commands in 1200ms, 
+                            so the time delay is dt = 1200/135 = 9ms. 
+                        </p>
+                        <p>Additionally, we need initial guesses for the process noise Sigma_u: </p>
+                        <img class="mb-2" width="140" src="assets/img/lab7_9.png" alt="..." /><br>
+                        <p> and sensor noise Sigma_z: </p>
+                        <img class="mb-2" width="100" src="assets/img/lab7_10.png" alt="..." /><br>
+                        <p>Plugging in dt = 9ms and dx = 2mm into the following equations: </p>
+                        <img class="mb-2" width="320" src="assets/img/lab7_11.png" alt="..." /><br>
+                        <p>We get sigma1^2 = sigma2^2 = 11, sigma3^2 = 50. These values are later tuned to adjust the weights of the 
+                            measurements and predictions. 
+                        </p>
+                        <p>Putting these all together, we can then initialize the Kalman Filter: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13</div>
+                        <div class="code-content"><code class="mb-0">A = np.array([[0, 1], [0, -0.00249]])   // A-matrix
+B = np.array([[0], [0.00011]])          // B-matrix
+dt = 9;                                 // time delay
+
+Ad = np.eye(2) - dt * A                 // dicretized A-matrix, adjusted sign to keep model consistent 
+Bd = -dt * B                            // dicretized B-matrix, adjusted sign to keep model consistent 
+C=np.array([[1,0]])                     // C-matrix, adjusted sign to keep model consistent 
+
+sig_u=np.array([[11,0],[0,11]])         // process noise 
+sig_z=np.array([[50]])                  // sensor noise 
+
+mu = np.array([[dist[0]],[0]])          // initial state
+sigma = np.array([[10, 0], [0, 10]])    // uncertainty for initial state
+</code></div></div>
+                        
+  
+                     </div>
+
+                     <div class="mb-5">
+                        <div class="subheading mb-0">Task 3. Implement and Test KF in Python</div>
+                        <p>The Karman Filter consists of the prediction step, where a new state is 
+                            estimated with the previous state and the new control input, and the update step, where 
+                            the new state estimate is corrected with the current sensor measurement:
+                        </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_12.png" alt="..." /><br>
+                        <p> Here is the implementation of the Kalman Filter in Python: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11</div>
+                        <div class="code-content"><code class="mb-0">def kf(mu,sigma,u,y):
+    mu_p = Ad.dot(mu) + Bd.dot(u)                                       // prediction 
+    sigma_p = Ad.dot(sigma.dot(Ad.transpose())) + sig_u                 // prediction 
+
+    sigma_m = C.dot(sigma_p.dot(C.transpose())) + sig_z                 // update 
+    kkf_gain = sigma_p.dot(C.transpose().dot(np.linalg.inv(sigma_m)))   // update 
+    y_m = y-C.dot(mu_p)                                                 // update 
+    mu = mu_p + kkf_gain.dot(y_m)                                       // update 
+    sigma=(np.eye(2)-kkf_gain.dot(C)).dot(sigma_p)                      // update 
+
+    return mu,sigma</code></div></div>
+                        <p> To call the Kalman Filter: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5</div>
+                        <div class="code-content"><code class="mb-0">KF_distance = []
+
+for i in range(len(time)):
+    mu, sigma = kf(mu, sigma, u[i], dist[i]) // Run Kalman filter for each time step
+    KF_distance.append(mu[0][0])</code></div></div>
+                        <p>I tested the Kalman Filter on a set of data collected in Lab 5: PID Position Control. With small Sigma_z/Sigma_u values, 
+                            we put more confidence in the current measurements and less in the predictions, 
+                            and the Kalman Filter follows the ToF sensor data very closely: </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_13.png" alt="..." /><br>
+                        <p>As we increase the Sigma_z/Sigma_u ratio, we trust the current measurements less and the predictions more, 
+                            the Kalman Filter follows a smooth path which is what we would expect for a sensor with faster sampling rate:  </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_14.png" alt="..." /><br>
+                        <p>But when the Sigma_z/Sigma_u ratio is too large, we are not trusting the current measurements at all but 
+                            heavily rely on the prediction, which can give us predctions that are significantly off and not useable:  </p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_15.png" alt="..." /><br>
+                        <p>From there, I found a suitable range of KF covariance matrices values for the next step. </p>
+                        
+
+                        <div class="mb-5">
+                            <div class="subheading mb-0">Task 4. Implement KF on the Robot</div>
+                            <p>I implementaed the Kalman Filter on the robot: </p>
+                            <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36</div>
+                            <div class="code-content"><code class="mb-0">#include <BasicLinearAlgebra.h>                //Use this library to work with matrices:
+using namespace BLA;     //This allows me to declare a matrix
+
+// Declare and initialize Ad, Bd, C, matrices 
+Matrix<2,2> Ad = {1, -8.9,
+                 0, 1.022161}; 
+...
+
+// Declare and initialize covariance matrices sig_u and sig_z
+Matrix<2,2> sig_u = {1, 0,
+                     0, 1}; 
+...
+
+// Declare control input u and measurement y
+Matrix<1> u; 
+...
+    
+// Declare and initialize initial states mu and initial uncertainty sigma
+Matrix<2,1> mu = {dist[0], 
+                  0}; 
+...
+
+// Implementation of Kalman Filter
+void KF(float ui, float yi) {
+  u = {ui};
+  y = {yi};
+
+  Matrix<2,1> mu_p = Ad*x + Bd*u;                   // prediction 
+  Matrix<2,2> sig_p = Ad*sig*~Ad + sig_u;           // prediction 
+
+  Matrix<1,1> sig_m = C*sig_p*~C + sig_z;           // update
+  Matrix<2,1> kf_gain = sig_p*~C*(Invert(sig_m));   // update
+  Matrix<1,1> y_m = y - C*mu_p;                     // update
+  mu = mu_p + kf_gain*y_m;                          // update
+  sigma = (I - kf_gain*C)*sig_p;                    // update
+}</code></div></div>
+
+                        <p>The data collected indicate the effectiveness of the Kalman Filter: </p>
+                        <p>Here is a video showing the KF implemented on the robot: </p>
+                        <iframe width="420" height="420"
+                                    src="https://www.youtube.com/embed/fpn5lwr5Fog">
+                        </iframe>
+                        <p>Retriving the data from the robot confirms that the KF is implemented correctly:</p>
+                        <img class="mb-2" width="420" src="assets/img/lab7_16.png" alt="..." /><br>
+      
+                        </div>
+                            
+                    
+                     </div>
+
             </section>
     </body>
 </html>
