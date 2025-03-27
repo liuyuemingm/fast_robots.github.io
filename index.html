@@ -850,8 +850,8 @@ void loop() {
                 <div class="resume-section-content">
                     
                 
-                    <h2 class="mb-0">Lab 5 <span class="text-primary">Linear PID control and Linear interpolation</span></h2>
-                    <p class="mb-5">The goal of is to drive the robot towards a wall and stop it 1ft in front of the wall. </p>
+                    <h2 class="mb-0">Lab 5 <span class="text-primary">Linear PID control</span></h2>
+                    <p class="mb-5">The goal of this lab is to drive the robot towards a wall and stop it 1ft in front of the wall. </p>
                     
                     <div class="mb-5">
                         <div class="subheading mb-0">Prelab</div>
@@ -983,10 +983,129 @@ ble.send_command(CMD.PID_POSITION, "0.03|0.001|1|50")</code></div></div>
             <!-- Lab 6-->
             <section class="resume-section" id="Lab 6">
                 <div class="resume-section-content">
-                    <h2 class="mb-5">Lab 6</h2>
+                    <h2 class="mb-0">Lab 6: Rotation PID control</h2>
+                    <p class="mb-5">The goal of this lab is to use PID control on IMU sensor to maintain robot orientation.  </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Prelab</div>
+                        <p> Similar to lab 5, in order to simplify debugging and tuning the controller, I set up the program such that the robot  
+                            start on an input from my computer sent over Bluetooth, where the numbers passed in are Kp, Ki, Kd, and maximum speed percentage: </p>
+                            <div class="code-container"><div class="line-numbers">1<br>2</div>
+                    <div class="code-content"><code class="mb-0">ble.start_notify(ble.uuid['RX_STRING'], pid_rotation_control)
+ble.send_command(CMD.PID_ROTATION, "0.0|0.0|0.0|50")</code></div></div>
+                        <p>Upon receiving the Bluetooth command, the robot will run the PID controller for a fixed amount of time: </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14</div>
+                        <div class="code-content"><code class="mb-0">case PID_ROTATION:
+    Extract the values from the command string and save them as Kp, Ki, Kd, max_speed_percentage
+    initialize IMU sensor
+    initilize motor
+
+    while time is less than PID running time 
+        record current time stamp in an array
+        run get_IMU() and record current IMU data in an array
+        run rotation_PID() to set the controller speed
+        drive the robot with controller speed
+        record Kp, Ki, and Kd terms in separate arrays
+    
+    set robot speed to zero
+    send over recorded data to computer via Bluetooth
+</code></div></div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Tuning Controller</div>
+                    <p>I rescaled the PWM to rotational speed percentage which ranges from 0 to 100.</p>
+                    <p>First I implemented the P controller with Kp = 1. This value is chosen to be small enough such 
+                        that the robot will not be able to overcome small disturbances. 
+                        As shown below in the plot and the video, the robot is stuck in the disturbed position. 
+                        Later I'll demonstrate that adding I controller will make up for that. 
+                    </p>
+                    <img class="mb-2" width="420" src="assets/img/lab6_1.png" alt="..." /><br>
+                    <iframe width="420" height="315"
+                    src="https://www.youtube.com/embed/xDWlQeyxO0w">
+                </iframe>
+
+                    <p>I then added the I controller with partial wind-up protection with Kp = 1 and Ki = 3. 
+                        With this additional control, robot is able to slowly adust itself back to the original position. </p>
+                    <iframe width="420" height="315"
+                    src="https://www.youtube.com/embed/KUroMBr6Zss">
+                </iframe>
+
+
+                    <p>The complete code for the controller is below: </p>
+                    <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23</div>
+                        <div class="code-content"><code class="mb-0">void rotation_PID (float meas_rot, int current_time, int prev_time, float prev_err) {
+    int dt = current_time - prev_time; 
+    float err = meas_rot - set_rot;
+    float derivative_err = (err - prev_err) / dt;
+    float PID = Kp * err + Ki * (integral_err + (err * dt)) + Kd * derivative_err; 
+    
+    // anti wind-up
+    bool clipping = (abs(PID)>max_rot_speed_percent); 
+    bool control_sign_match = (err * PID >= 0); 
+    
+    if (abs(err)<=10) { 
+        integral_err = 0; 
+    }else if (!clipping && !control_sign_match){ 
+        integral_err = integral_err + (err * dt);
+    } 
+    
+    Kp_term = Kp * err;
+    Ki_term = Ki * integral_err;
+    Kd_term = Kd * derivative_err;
+    rot_speed_percent = Kp_term + Ki_term + Kd_term;
+    rot_speed_percent_2_PWM();
+    drive(PWM_R, PWM_L);
+}
+</code></div></div>
+                
+
+                    <p>With PID fully implemented, the robot is able to behave as expected with Kp = 4, Ki = 0.5:  </p>
+                        
+                        <iframe width="420" height="315"
+                        src="https://www.youtube.com/embed/wSMlGVK4IcI">
+                    </iframe>
+
+                </div>
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Sampling Time Discussion</div>
+                    <p>I was able to decouple the IMU sampling rate from the controller output rate 
+                        by using the latest data available without waiting for the IMU sensor to respond.
+                        The sampling delay for ToF found in previous labs was about 18ms, and the control delay is about 9ms. </p>
                     
                 </div>
+
+                <div class="mb-5">
+                    <div class="subheading mb-0">Wind-up Discussion</div>
+                    <p>Lines 8 - 9 and 13 in the code from the previous section is implemented for wind-up protection. 
+                        Line 8 pauses integration when the controller is saturated, which is important because we loose control when the 
+                        motor is saturated. This is especially useful when Kp gain is high.  
+                        Line 9 pauses integration when the control direction matches the error direction, which is important especially for 
+                        low Kp gains because it can significantly reduce the overshoot </p>
+                        
+                </div>
             </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             
             <!-- Lab 7-->
             <section class="resume-section" id="Lab 7">
