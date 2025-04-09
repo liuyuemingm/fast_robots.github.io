@@ -33,6 +33,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 5">Lab 5</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 6">Lab 6</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 7">Lab 7</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 8">Lab 8</a></li>
                 </ul>
             </div>
         </nav>
@@ -1071,7 +1072,7 @@ ble.send_command(CMD.PID_ROTATION, "0.0|0.0|0.0|50")</code></div></div>
                 <div class="mb-5">
                     <div class="subheading mb-0">Sampling Time Discussion</div>
                     <p>I was able to decouple the IMU sampling rate from the controller output rate 
-                        by using the latest data available without waiting for the IMU sensor to respond.
+                        by using the latest data available without waiting for the IMU sensor tgito respond.
                         The sampling delay for ToF found in previous labs was about 18ms, and the control delay is about 9ms. </p>
                     
                 </div>
@@ -1086,25 +1087,6 @@ ble.send_command(CMD.PID_ROTATION, "0.0|0.0|0.0|50")</code></div></div>
                         
                 </div>
             </section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             
             <!-- Lab 7-->
@@ -1276,6 +1258,92 @@ void KF(float ui, float yi) {
                             
                     
                      </div>
+
+                    
+
+
+            </section>
+
+
+
+
+
+
+
+
+            <!-- Lab 8-->
+            <section class="resume-section" id="Lab 8">
+                <div class="resume-section-content">
+                    <h2 class="mb-0">Lab 8 <span class="text-primary">Stunt!</span></h2>
+                    <p class="mb-5">The goal of this lab is to drive the robot towards the wall, do a backflip about 1ft away from the wall, drive back, and do so as fast as possible. </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Hardware</div>
+                        <p>In order for the robot to perform a backflip, its center of mass must be close to the front, as shown below. 
+                            Therefore I placed batteries in the front pocket of the car and added additional mass such as bolts. 
+                        </p>
+                        <img class="mb-2" width="240" src="assets/img/lab8_1.png" alt="..." /><br>
+                        <p>Since I'm doing this stunt at home, in order to recreate the sticky pad setup in the lab environment, I covered
+                             the floor around 1 ft away from the wall with tape, and then removed the tape but intentially left some sticky residuals on the floor. 
+                             This will make it easier for the car to backflip.  
+                        </p>
+                     </div>
+
+                     <div class="mb-5">
+                        <div class="subheading mb-0">Implementation</div>
+                        <p>The stunt can be broken down into 3 stages: 1) move forward, 2) flip, and 3) adjust direction & drive back. 
+                            I used open loop control for all three steps. 
+                            First, I accelerate the car as fast as possible towards the wall for a set amount of time, and then rapidly brake the 
+                            car by reversing the wheels with the maximum PWM for a very brief second. The combine effects of displaced center of mass, 
+                            sticky floor, and active braking caused the car to backflip. The following is the pseudo code of part of the program to achieve this. 
+                        </p>
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14</div>
+                        <div class="code-content"><code class="mb-0">initialize motors
+initialize ToF and IMU sensor 
+while true{
+    record time
+    record ToF and IMU sensor data; 
+    if (time < move forward end time)
+        set forward speed to max speed
+    else if (time < active brake end time)
+        reverse motors with max speed
+    else if (time < idle end time)
+        stop motors
+    else if (time < move back end time)
+        set left and right wheel PWM based on IMU yaw readings to adjust direction when heading back
+    else if (time > max time)
+        stop motors
+}</code></div></div>
+                        
+                        <p>Data from one of the test runs is plotted below. The 3 stages are labeled in the plot. The entire test run took about 
+                            4.5 seconds (the first 0.3s of data is lost in this test run), 
+                            and the maximum speed achieved can be calculated from the plot, which is about 3.6m/s. 
+                            Note that when the car is moving away from the wall, the ToF sensor data is not trustworthy since the nearest obstacle
+                            is outside the measuring range of the sensor. 
+                        </p>
+                        <img class="mb-2" width="420" src="assets/img/lab8_2.png" alt="..." /><br>
+                        
+                        <p>Below are videos showing repeated testruns of the stunt: </p>
+                        <iframe width="420" height="360"
+                                    src="https://www.youtube.com/embed/r28SlqU4JTo">
+                        </iframe><br>
+                        <iframe width="420" height="360"
+                                    src="https://www.youtube.com/embed/jbsTltJ3OQ0">
+                        </iframe><br>
+                        <iframe width="420" height="360"
+                                    src="https://www.youtube.com/embed/gW4Az598ueQ">
+                        </iframe>
+                        
+      
+                        </div>
+                            
+                    
+                     </div>
+
+                     
+                     
+                     
+
 
             </section>
     </body>
