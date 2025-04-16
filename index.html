@@ -34,6 +34,8 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 6">Lab 6</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 7">Lab 7</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 8">Lab 8</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 9">Lab 9</a></li>
+
                 </ul>
             </div>
         </nav>
@@ -405,9 +407,6 @@ for bytes in range(5, 125, 5):
                 </div>
             </section>
             <hr class="m-0" />
-
-
-
             <!-- Lab 2-->
             <section class="resume-section" id="Lab 2">
                 <div class="resume-section-content">
@@ -1086,9 +1085,7 @@ ble.send_command(CMD.PID_ROTATION, "0.0|0.0|0.0|50")</code></div></div>
                         low Kp gains because it can significantly reduce the overshoot </p>
                         
                 </div>
-            </section>
-
-            
+            </section>         
             <!-- Lab 7-->
             <section class="resume-section" id="Lab 7">
                 <div class="resume-section-content">
@@ -1263,14 +1260,6 @@ void KF(float ui, float yi) {
 
 
             </section>
-
-
-
-
-
-
-
-
             <!-- Lab 8-->
             <section class="resume-section" id="Lab 8">
                 <div class="resume-section-content">
@@ -1346,5 +1335,98 @@ while true{
 
 
             </section>
+
+
+            <!-- Lab 9-->
+            <section class="resume-section" id="Lab 9">
+                <div class="resume-section-content">
+                    <h2 class="mb-0">Lab 9 <span class="text-primary">Mapping</span></h2>
+                    <p class="mb-5">The goal of this lab is to map out a static room by placing the robot at different locations in the room, 
+                        rotate the robot while collecting the ToF sensor distance data, and reconstruct the map with the yaw angle and distance information. 
+                        The map will be used in the next two labs for localization and navigation.  </p>
+                    
+                    <div class="mb-5">
+                        <div class="subheading mb-0">Orientation PID Control</div>
+                        <p>
+                            The quality of the map depends on whether the robot is able to accurately report its yaw angle while measuring the distance. 
+                            To have a better control of the yaw, I implemented PID controller on the orientation control. The robot will rotate a set amount 
+                            of degrees, stop to take measurement, and rotate again until it cover the entire 360 degrees. 
+                        </p>
+                        
+                        <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21</div>
+                        <div class="code-content"><code class="mb-0">case MAPPING:{
+    extract command variables, including Kp, Ki, Kd, increment, errBound
+    initialize IMU, motor, and ToF
+    measurement_taken = false
+    
+    while(yaw < 360){
+        Record yaw from IMU
+        if (measurement_taken){ 
+            set_point = yaw + increment
+            measurement_taken = false
+        }else{ 
+            if (abs(yaw - set_point) < errBound){
+                stop motors
+                take 5 ToF measurements and average them
+                measurement_taken = true;
+            }else{
+                perform rotation PID to set_point
+            }
+    }
+    send data via bluetooth
+}break</code></div></div>
+                    <p>
+                        The Controller works as expected. The rotation is slightly off-axis, as shown in the video below, and there is 
+                        a drift about 15 degress per revolution. I applied a constant multiplier to account for the drift, and the 
+                        corrected data is shown below. 
+                    </p>
+                    <iframe width="420" height="360"
+                                    src="https://www.youtube.com/embed/lrh0mN0tqAk">
+                    </iframe><br>
+                    <img class="mb-2" width="420" src="assets/img/lab9_0.png" alt="..." /><br>
+
+
+                     </div>
+
+                     <div class="mb-5">
+                        <div class="subheading mb-0">Data Collection</div>
+                        <p>I placed the robot at each of the locations [(5,3), (0,3), (-3,-2), (5,-3)], did a full revolution, 
+                            and collected the yaw and average distance data. The following plot show the yaw vs. distance for each of the locaitons in polar coordinates. 
+                        </p>
+                        <img class="mb-2" width="210" src="assets/img/lab9_1.png" alt="..." />
+                        <img class="mb-2" width="210" src="assets/img/lab9_2.png" alt="..." /><br>
+                        <img class="mb-2" width="210" src="assets/img/lab9_3.png" alt="..." />
+                        <img class="mb-2" width="210" src="assets/img/lab9_4.png" alt="..." /><br>
+                        </div>
+
+
+
+                        <div class="mb-5">
+                            <div class="subheading mb-0">Map Reconstruction</div>
+                            <p>I performed the following transformation to the ToF sensor readings, where theta is the yaw angle, 
+                                x and y are the coordinateds of the robot location. The product of this transformation matrix with ToF data = [dist; 0; 1]
+                                results in the global coordinates of the walls. 
+                            </p>
+                            <img class="mb-2" width="210" src="assets/img/lab9_5.png" alt="..." /><br>
+                            <p>The following plot shows the aggregated data from four sets of ToF sensor measurements. In addition to the tranformation applied above, 
+                                I had to manually adjust the angles by about 5 deg to align the readings. These misalignments are potentially due to drifts in IMU sensor 
+                                readings or the initial misalignments when placing the robots. 
+                            </p>
+                            <img class="mb-2" width="420" src="assets/img/lab9_6.png" alt="..." /><br>
+                            <img class="mb-2" width="420" src="assets/img/lab9_7.png" alt="..." /><br>
+
+          
+                            </div>
+                            
+                    
+                     </div>
+
+                     
+                     
+                     
+
+
+            </section>
+
     </body>
 </html>
