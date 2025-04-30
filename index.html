@@ -36,6 +36,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 8">Lab 8</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 9">Lab 9</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 10">Lab 10</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 11">Lab 11</a></li>
 
                 </ul>
             </div>
@@ -1618,6 +1619,89 @@ loc.bel_bar /= np.sum(loc.bel_bar)</code></div></div>
     </iframe>
     
     
+
+</div>
+
+
+<!-- Lab 11-->
+<section class="resume-section" id="Lab 11">
+    <div class="resume-section-content">
+        <h2 class="mb-0">Lab 10 <span class="text-primary"> Localization on the Real Robot</span></h2>
+        <p class="mb-5">The goal of this lab is to perform the same task as the last lab to localize the robot but in the real environment.  </p>
+        
+        <div class="mb-5">
+            <div class="subheading mb-0">Bayes Filter in Simulation</div>
+            <p>The Bayes Filter in simulation, where red is odometry, green and blue are the ground truth pose and the expected pose, respectively: 
+            </p>
+            <img class="mb-2" width="630" src="assets/img/lab11_1.png" alt="..." />
+         </div>
+
+        
+            <div class="mb-5">
+                <div class="subheading mb-0">Bayes Filter in the Real Environment</div>
+                <p>Here we are only performing the update step of the Bayes Filter, which is implemented as perform_observation_loop(). At each of the 4 pre-determined 
+                    locations of in the map, the robot does a 360 deg rotation in increments of 20 deg, and take 18
+                    ToF sensor measurements for reach incremental rotations, similar to what was done in Lab 9. Here I used 
+                    asyncio.run(asyncio.sleep(30)) to sleep for 30 seconds while waiting for the rotation sequence to execute and for ble to return the data. 
+                </p>
+                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>12<br>23<br>24<br>25</div>
+            <div class="code-content"><code class="mb-0">def perform_observation_loop(self, rot_vel=120):
+    """Perform the observation loop behavior on the real robot, where the robot does  
+    a 360 degree turn in place while collecting equidistant (in the angular space) sensor
+    readings, with the first sensor reading taken at the robot's current heading. 
+    The number of sensor readings depends on "observations_count"(=18) defined in world.yaml.
+
+    Keyword arguments:
+        rot_vel -- (Optional) Angular Velocity for loop (degrees/second)
+                    Do not remove this parameter from the function definition, even if you don't use it.
+    Returns:
+        sensor_ranges   -- A column numpy array of the range values (meters)
+        sensor_bearings -- A column numpy array of the bearings at which the sensor readings were taken (degrees)
+                            The bearing values are not used in the Localization module, so you may return a empty numpy array
+    """
+        
+    global ToF_readings
+    ToF_readings = []
+    def notification_handler_localization(uuid, notification):
+        s = ble.bytearray_to_string(notification)
+        ToF_readings.append(s)
+
+    ble.start_notify(ble.uuid['RX_STRING'], notification_handler_localization)
+    ble.send_command(CMD.LOCALIZATION, "20|5")  # increment|errBound
+    ble.send_command(CMD.ECHO, "done")
+
+    # sleep for 30 seconds while waiting for data 
+    asyncio.run(asyncio.sleep(30))
+
+    # parse the data 
+    ToF_readings = list(map(int, ToF_readings[0:-1]))
+    ToF_readings = [d / 1000 for d in ToF_readings]
+    
+    sensor_ranges = np.array(ToF_readings)[np.newaxis].T
+    sensor_bearings = np.array([])[np.newaxis].T
+    
+    ble.stop_notify(ble.uuid['RX_STRING'])
+    return sensor_ranges, sensor_bearings
+            </code></div></div>
+            </div>
+         
+
+         <div class="mb-5">
+            <div class="subheading mb-0">Results</div>
+            <p>The results from Bayes Filter (blue) were decently close to the real pose of the robot (green). Two sources of error I had to tune for 
+                during the lab where the robot 1) drifting and 2) over- or under-turning, but overall the robot is able to determine its location through one 
+                step of update with Bayes Filter. 
+                
+            </p>
+            <br><p>Location 1: </p>
+                <img class="mb-2" width="630" src="assets/img/lab11_2.png" alt="..." /><br>
+                <p>Location 2: </p>
+                <img class="mb-2" width="630" src="assets/img/lab11_3.png" alt="..." /><br>
+                <p>Location 3: </p>
+                <img class="mb-2" width="630" src="assets/img/lab11_4.png" alt="..." /><br>
+                <p>Location 4: </p>
+                <img class="mb-2" width="630" src="assets/img/lab11_5.png" alt="..." />
+            
 
 </div>
 
