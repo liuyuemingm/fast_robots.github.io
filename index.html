@@ -1644,7 +1644,7 @@ loc.bel_bar /= np.sum(loc.bel_bar)</code></div></div>
                     ToF sensor measurements for reach incremental rotations, similar to what was done in Lab 9. Here I used 
                     asyncio.run(asyncio.sleep(30)) to sleep for 30 seconds while waiting for the rotation sequence to execute and for ble to return the data. 
                 </p>
-                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>12<br>23<br>24<br>25</div>
+                <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>12<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37</div>
             <div class="code-content"><code class="mb-0">def perform_observation_loop(self, rot_vel=120):
     """Perform the observation loop behavior on the real robot, where the robot does  
     a 360 degree turn in place while collecting equidistant (in the angular space) sensor
