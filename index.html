@@ -37,6 +37,7 @@
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 9">Lab 9</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 10">Lab 10</a></li>
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 11">Lab 11</a></li>
+                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#Lab 12">Lab 12</a></li>
 
                 </ul>
             </div>
@@ -1404,7 +1405,7 @@ while true{
                         <div class="mb-5">
                             <div class="subheading mb-0">Map Reconstruction</div>
                             <p>I performed the following transformation to the ToF sensor readings, where theta is the yaw angle, 
-                                x and y are the coordinateds of the robot location. The product of this transformation matrix with ToF data = [dist; 0; 1]
+                                x and y are the coordinates of the robot location. The product of this transformation matrix with ToF data = [dist; 0; 1]
                                 results in the global coordinates of the walls. 
                             </p>
                             <img class="mb-2" width="210" src="assets/img/lab9_5.png" alt="..." /><br>
@@ -1621,12 +1622,12 @@ loc.bel_bar /= np.sum(loc.bel_bar)</code></div></div>
     
 
 </div>
+            </section>
 
-
-<!-- Lab 11-->
-<section class="resume-section" id="Lab 11">
+            <!-- Lab 11-->
+            <section class="resume-section" id="Lab 11">
     <div class="resume-section-content">
-        <h2 class="mb-0">Lab 10 <span class="text-primary"> Localization on the Real Robot</span></h2>
+        <h2 class="mb-0">Lab 11 <span class="text-primary"> Localization on the Real Robot</span></h2>
         <p class="mb-5">The goal of this lab is to perform the same task as the last lab to localize the robot but in the real environment.  </p>
         
         <div class="mb-5">
@@ -1704,6 +1705,112 @@ loc.bel_bar /= np.sum(loc.bel_bar)</code></div></div>
             
 
 </div>
+
+
+            </section>
+
+
+            <!-- Lab 12-->
+<section class="resume-section" id="Lab 12">
+    <div class="resume-section-content">
+        <h2 class="mb-0">Lab 12 <span class="text-primary"> Navigation </span></h2>
+        <p class="mb-5">The goal of this lab is to navigate the robot in the map to hit the waypoints as quickly and accurately as possible </p>
+        
+        
+        <div class="mb-5">
+            <div class="subheading mb-0">Implementation</div>
+            <p>The map environment and the waypoint coordinates are shown below. </p>
+            <img class="mb-2" height="240" src="assets/img/lab12_2.png" alt="..." />
+            <img class="mb-2" height="240" src="assets/img/lab12_3.png" alt="..." />
+            <p> Since I was not able to stay on campus, I set up a 3:1 scaled down map in my 
+                room to recreate the lab environment:  
+            </p>
+            <img class="mb-2" width="420" src="assets/img/lab12_1.jpeg" alt="..." />
+            <p>I initially implemented PID control for both linear translation and rotation. However, 
+                the ToF sensor didn't perform well when detecting small distances in my map. 
+                To address this, I switched to open-loop control for linear movement while keeping PID control for rotation. 
+                To make navigation smoother and more efficient, I integrated the turning and forward motion into a 
+                single control loop. As the robot moves toward the next waypoint, the PID controller adjusts the 
+                orientation by introducing a differential to the forward drive, allowing for continuous motion rather than 
+                separate stop-and-turn steps.
+            </p>
+         
+
+            <div class="code-container"><div class="line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>12<br>23<br>24<br>25<br>26<br>27<br>28<br>29<br>30<br>31<br>32<br>33<br>34<br>35<br>36<br>37<br>38<br>39<br>40<br>41<br>42<br>43<br>44<br>45<br>46<br>47<br>48<br>49<br>50<br>51<br>52<br>53<br>54<br>55<br>56<br>57<br>58<br>59<br>60<br>61<br>62<br>63<br>64<br>65</div>
+            <div class="code-content"><code class="mb-0">case NAVIGATION:
+
+    ...// retreive bluetooth data 
+    ...// initialize motor and imu sensor
+
+    while (time < max_time){
+
+        if (currentWaypoint >= NUM_WAYPOINTS) {
+            setMotorSpeeds(0, 0);
+            return;
+        }
+
+        if (now - lastUpdateTime >= LOOP_INTERVAL) {
+            lastUpdateTime = now;
+
+            float goalX = waypoints[currentWaypoint][0];
+            float goalY = waypoints[currentWaypoint][1];
+
+            float dx = goalX - robotX;
+            float dy = goalY - robotY;
+            float distanceToGoal = sqrt(dx * dx + dy * dy); 
+            float targetAngle = atan2(dy, dx) * RAD_TO_DEG;
+
+            float currentAngle = getYaw();  // degrees
+            float angleError = angleDifference(targetAngle, currentAngle);
+
+            // PID: Heading correction
+            integral += angleError;
+            float derivative = angleError - previousError;
+            previousError = angleError;
+
+            float rotationCorrection = kp * angleError + ki * integral + kd * derivative;
+            rotationCorrection = constrain(rotationCorrection, -100, 100);
+
+            // Estimate how long to drive (once)
+            if (!isDriving) {
+                forwardStartTime = now;
+                forwardDuration = (distanceToGoal / SPEED_CM_PER_SEC) * 1000;  // ms
+                isDriving = true;
+
+                // Update pose estimate (assume success)
+                robotX = goalX;
+                robotY = goalY;
+                robotTheta = targetAngle;
+
+                // Reset PID
+                previousError = 0;
+                integral = 0;
+            }
+
+            // === Combine forward motion with heading correction ===
+            float leftSpeed = FORWARD_SPEED - rotationCorrection;
+            float rightSpeed = FORWARD_SPEED + rotationCorrection;
+
+            setMotorSpeeds(leftSpeed, rightSpeed);
+
+            // === Stop when time is up ===
+            if (now - forwardStartTime >= forwardDuration) {
+                setMotorSpeeds(0, 0);
+                delay(200);  // short pause
+                currentWaypoint++;
+                isDriving = false;
+            }
+        }
+    }
+            </code></div></div>
+
+            <p>The result is shown in the video below. The robot is able to complete the task fast but the accuracy can be improved. </p>
+
+            <iframe width="420" height="315"
+                src="https://www.youtube.com/embed/IMvYPSFcZ8M">
+            </iframe> 
+
+            </div>
 
 
             </section>
